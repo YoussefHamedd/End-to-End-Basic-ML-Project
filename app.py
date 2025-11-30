@@ -1,19 +1,26 @@
-from flask import Flask,request,render_template
+from flask import Flask, request, render_template, Response
 import numpy as np
 import pandas as pd
 
 from sklearn.preprocessing import StandardScaler
-from src.Pipelines.predict_pipeline import CustomData,PredictPipeline
+from src.Pipelines.predict_pipeline import CustomData, PredictPipeline
+from src.monitoring import monitor
 
-application=Flask(__name__)
+application = Flask(__name__)
 
-app=application
+app = application
+
 
 ## Route for a home page
-
 @app.route('/')
 def index():
-    return render_template('index.html') 
+    return render_template('index.html')
+
+
+## Metrics endpoint for Prometheus
+@app.route('/metrics')
+def metrics():
+    return Response(monitor.get_metrics(), mimetype='text/plain') 
 
 @app.route('/predictdata',methods=['GET','POST'])
 def predict_datapoint():

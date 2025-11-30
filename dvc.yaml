@@ -1,0 +1,32 @@
+stages:
+  data_ingestion:
+    cmd: python src/components/data_ingestion.py
+    deps:
+      - src/components/data_ingestion.py
+      - data/stud.csv
+    outs:
+      - artifacts/train.csv
+      - artifacts/test.csv
+      - artifacts/data.csv
+
+  data_transformation:
+    cmd: python src/components/data_transformation.py
+    deps:
+      - src/components/data_transformation.py
+      - artifacts/train.csv
+      - artifacts/test.csv
+    outs:
+      - artifacts/proprocessor.pkl
+
+  model_training:
+    cmd: python src/components/model_trainer.py
+    deps:
+      - src/components/model_trainer.py
+      - artifacts/train.csv
+      - artifacts/test.csv
+      - artifacts/proprocessor.pkl
+    outs:
+      - artifacts/model.pkl
+    metrics:
+      - metrics.json:
+          cache: false
