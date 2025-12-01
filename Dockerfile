@@ -8,8 +8,8 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
-COPY requirements.txt .
+# Copy requirements and setup files for better caching
+COPY requirements.txt setup.py ./
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
