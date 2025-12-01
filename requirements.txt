@@ -30,4 +30,8 @@ python-dotenv
 # Model Serving
 gunicorn
 
+# Optional: Transformer Models (uncomment if using RoBERTa/BERT)
+# transformers
+# torch
+
 -e .
