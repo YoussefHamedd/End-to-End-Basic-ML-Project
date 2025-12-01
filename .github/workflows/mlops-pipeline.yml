@@ -135,7 +135,7 @@ jobs:
 
       - name: Start services with Docker Compose
         run: |
-          docker-compose up -d || true
+          docker compose up -d || true
           sleep 30
 
       - name: Test ML application endpoint
@@ -144,7 +144,7 @@ jobs:
         continue-on-error: true
 
       - name: Stop services
-        run: docker-compose down
+        run: docker compose down
         if: always()
 
   # Deployment (placeholder)
