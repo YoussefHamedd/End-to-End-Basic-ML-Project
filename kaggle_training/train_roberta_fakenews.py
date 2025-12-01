@@ -2,6 +2,7 @@
 Complete Kaggle Training Script for Fake News Detection with RoBERTa-Large
 
 This script trains RoBERTa-large on the WELFake dataset and saves it for integration.
+Includes MLflow tracking for experiment management.
 """
 
 import pandas as pd
@@ -26,6 +27,15 @@ MAX_LENGTH = 256
 BATCH_SIZE = 8  # Smaller batch size for roberta-large
 EPOCHS = 3
 LEARNING_RATE = 2e-5
+
+# MLflow Configuration
+# Option 1: Use ngrok URL (recommended for local MLflow)
+# MLFLOW_TRACKING_URI = "https://your-ngrok-url.ngrok.io"
+# Option 2: Use deployed MLflow server
+# MLFLOW_TRACKING_URI = "https://your-mlflow-server.com"
+# Option 3: Local file tracking (no server needed)
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "file:///kaggle/working/mlruns")
+EXPERIMENT_NAME = "kaggle_fake_news_detection"
 
 os.environ["WANDB_DISABLED"] = "true"
 
@@ -184,6 +194,59 @@ print(f"  Precision: {test_results['eval_precision']:.4f}")
 print(f"  Recall: {test_results['eval_recall']:.4f}")
 print(f"  F1 Score: {test_results['eval_f1']:.4f}")
 
+# ==================== MLflow Tracking ====================
+print("\n📊 Logging to MLflow...")
+
+try:
+    import mlflow
+    import mlflow.pytorch
+
+    # Set tracking URI and experiment
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+    mlflow.set_experiment(EXPERIMENT_NAME)
+
+    # Start MLflow run
+    with mlflow.start_run(run_name=f"roberta_large_fakenews_e{EPOCHS}"):
+
+        # Log parameters
+        mlflow.log_param("model_name", MODEL_NAME)
+        mlflow.log_param("task", "fake_news_detection")
+        mlflow.log_param("dataset", "WELFake")
+        mlflow.log_param("max_length", MAX_LENGTH)
+        mlflow.log_param("batch_size", BATCH_SIZE)
+        mlflow.log_param("epochs", EPOCHS)
+        mlflow.log_param("learning_rate", LEARNING_RATE)
+        mlflow.log_param("train_samples", len(train_texts))
+        mlflow.log_param("val_samples", len(val_texts))
+        mlflow.log_param("test_samples", len(test_texts))
+
+        # Log metrics
+        mlflow.log_metric("accuracy", test_results['eval_accuracy'])
+        mlflow.log_metric("precision", test_results['eval_precision'])
+        mlflow.log_metric("recall", test_results['eval_recall'])
+        mlflow.log_metric("f1_score", test_results['eval_f1'])
+        mlflow.log_metric("test_loss", test_results['eval_loss'])
+
+        # Log model (PyTorch format)
+        mlflow.pytorch.log_model(model, "model")
+
+        # Log training args as artifact
+        training_args_dict = training_args.to_dict()
+        mlflow.log_dict(training_args_dict, "training_args.json")
+
+        mlflow_run_id = mlflow.active_run().info.run_id
+        print(f"✓ MLflow Run ID: {mlflow_run_id}")
+        print(f"✓ MLflow Tracking URI: {MLFLOW_TRACKING_URI}")
+
+except ImportError:
+    print("⚠️  MLflow not installed. Skipping experiment tracking.")
+    print("   Install with: !pip install mlflow")
+    mlflow_run_id = None
+except Exception as e:
+    print(f"⚠️  MLflow tracking failed: {str(e)}")
+    print("   Continuing without MLflow tracking...")
+    mlflow_run_id = None
+
 # ==================== Save Model ====================
 print("\n💾 Saving model...")
 trainer.save_model(OUTPUT_DIR)
@@ -206,14 +269,16 @@ metadata = {
         "precision": float(test_results['eval_precision']),
         "recall": float(test_results['eval_recall']),
         "f1": float(test_results['eval_f1']),
-    }
+    },
+    "mlflow_run_id": mlflow_run_id,
+    "mlflow_tracking_uri": MLFLOW_TRACKING_URI
 }
 
 with open(f"{OUTPUT_DIR}/metadata.json", "w") as f:
     json.dump(metadata, f, indent=2)
 
 # Save label mapping
-label_map = {0: "Real News", 1: "Fake News"}
+label_map = {"0": "Real News", "1": "Fake News"}
 with open(f"{OUTPUT_DIR}/label_map.json", "w") as f:
     json.dump(label_map, f, indent=2)
 
