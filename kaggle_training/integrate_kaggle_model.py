@@ -8,6 +8,12 @@ registering the model with MLflow.
 
 Usage:
     python kaggle_training/integrate_kaggle_model.py --kaggle-model-path /path/to/downloaded/model
+
+    # Use move instead of copy to save space
+    python kaggle_training/integrate_kaggle_model.py --kaggle-model-path /path/to/model --move
+
+    # Use symbolic link (Windows junction/Mac symlink)
+    python kaggle_training/integrate_kaggle_model.py --kaggle-model-path /path/to/model --symlink
 """
 
 import os
@@ -15,6 +21,8 @@ import sys
 import json
 import shutil
 import argparse
+import platform
+import subprocess
 import mlflow
 import mlflow.pytorch
 from pathlib import Path
@@ -39,6 +47,22 @@ def parse_args():
         "--register",
         action="store_true",
         help="Register model in MLflow Model Registry",
+    )
+    parser.add_argument(
+        "--move",
+        action="store_true",
+        help="Move files instead of copying (saves disk space)",
+    )
+    parser.add_argument(
+        "--symlink",
+        action="store_true",
+        help="Create symbolic link/junction instead of copying (saves disk space, Windows: requires admin for symlinks, use junction instead)",
+    )
+    parser.add_argument(
+        "--skip-checkpoint",
+        action="store_true",
+        default=True,
+        help="Skip copying checkpoint folders (default: True, saves space)",
     )
     return parser.parse_args()
 
@@ -81,9 +105,60 @@ def load_metadata(model_path):
     return metadata
 
 
-def copy_model_to_artifacts(kaggle_model_path, model_name):
-    """Copy Kaggle model to artifacts directory"""
-    print(f"📦 Copying model to artifacts...")
+def get_dir_size(path):
+    """Calculate directory size in bytes"""
+    total_size = 0
+    for dirpath, dirnames, filenames in os.walk(path):
+        for filename in filenames:
+            filepath = os.path.join(dirpath, filename)
+            if os.path.exists(filepath):
+                total_size += os.path.getsize(filepath)
+    return total_size
+
+
+def get_free_space(path):
+    """Get free disk space in bytes"""
+    if platform.system() == 'Windows':
+        import ctypes
+        free_bytes = ctypes.c_ulonglong(0)
+        ctypes.windll.kernel32.GetDiskFreeSpaceExW(
+            ctypes.c_wchar_p(path), None, None, ctypes.pointer(free_bytes)
+        )
+        return free_bytes.value
+    else:
+        stat = os.statvfs(path)
+        return stat.f_bavail * stat.f_frsize
+
+
+def create_symlink_or_junction(source, dest):
+    """Create symlink on Unix or junction on Windows"""
+    is_windows = platform.system() == 'Windows'
+
+    if is_windows:
+        # Use mklink /J for directory junction on Windows (no admin required)
+        try:
+            subprocess.run(
+                ['cmd', '/c', 'mklink', '/J', dest, source],
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"⚠️  Failed to create junction: {e.stderr}")
+            return False
+    else:
+        # Use symlink on Unix/Mac
+        try:
+            os.symlink(source, dest)
+            return True
+        except Exception as e:
+            print(f"⚠️  Failed to create symlink: {e}")
+            return False
+
+
+def copy_model_to_artifacts(kaggle_model_path, model_name, use_move=False, use_symlink=False, skip_checkpoint=True):
+    """Copy/move/symlink Kaggle model to artifacts directory"""
 
     # Create artifacts directory for transformers
     artifacts_dir = "artifacts/transformers"
@@ -95,12 +170,62 @@ def copy_model_to_artifacts(kaggle_model_path, model_name):
     # Remove existing if present
     if os.path.exists(dest_path):
         print(f"  Removing existing model at: {dest_path}")
-        shutil.rmtree(dest_path)
+        if os.path.islink(dest_path) or (platform.system() == 'Windows' and os.path.isdir(dest_path)):
+            # Handle symlinks/junctions
+            if platform.system() == 'Windows':
+                subprocess.run(['cmd', '/c', 'rmdir', dest_path], check=False)
+            else:
+                os.unlink(dest_path)
+        else:
+            shutil.rmtree(dest_path)
 
-    # Copy model directory
-    shutil.copytree(kaggle_model_path, dest_path)
+    # Use symlink/junction
+    if use_symlink:
+        print(f"🔗 Creating {'junction' if platform.system() == 'Windows' else 'symlink'} to artifacts...")
+        # Convert to absolute path
+        abs_source = os.path.abspath(kaggle_model_path)
+        abs_dest = os.path.abspath(dest_path)
 
-    print(f"✓ Model copied to: {dest_path}")
+        if create_symlink_or_junction(abs_source, abs_dest):
+            print(f"✓ {'Junction' if platform.system() == 'Windows' else 'Symlink'} created: {dest_path} -> {kaggle_model_path}")
+            return dest_path
+        else:
+            print("⚠️  Falling back to copy...")
+            use_symlink = False
+
+    # Check disk space if copying
+    if not use_symlink and not use_move:
+        print(f"📦 Copying model to artifacts...")
+        model_size = get_dir_size(kaggle_model_path)
+        free_space = get_free_space(artifacts_dir)
+
+        print(f"  Model size: {model_size / (1024**3):.2f} GB")
+        print(f"  Free space: {free_space / (1024**3):.2f} GB")
+
+        if model_size > free_space:
+            print(f"❌ Not enough disk space! Consider using --move or --symlink")
+            raise RuntimeError("Insufficient disk space")
+
+        # Copy with selective exclusions
+        def ignore_patterns(dir, files):
+            ignored = []
+            if skip_checkpoint:
+                for f in files:
+                    if 'checkpoint' in f.lower():
+                        ignored.append(f)
+                        print(f"  Skipping: {f}")
+            return ignored
+
+        shutil.copytree(kaggle_model_path, dest_path, ignore=ignore_patterns)
+        print(f"✓ Model copied to: {dest_path}")
+
+    # Use move
+    elif use_move:
+        print(f"📦 Moving model to artifacts...")
+        shutil.move(kaggle_model_path, dest_path)
+        print(f"✓ Model moved to: {dest_path}")
+        print(f"⚠️  Original location is now empty!")
+
     return dest_path
 
 
@@ -239,8 +364,14 @@ def main():
     print(f"  Base: {metadata.get('model_name')}")
     print(f"  Task: {metadata.get('task')}")
 
-    # 3. Copy to artifacts
-    dest_path = copy_model_to_artifacts(args.kaggle_model_path, args.model_name)
+    # 3. Copy/move/symlink to artifacts
+    dest_path = copy_model_to_artifacts(
+        args.kaggle_model_path,
+        args.model_name,
+        use_move=args.move,
+        use_symlink=args.symlink,
+        skip_checkpoint=args.skip_checkpoint
+    )
 
     # 4. Log to MLflow
     run_id = log_model_to_mlflow(dest_path, metadata)
