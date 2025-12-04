@@ -4,6 +4,17 @@ Projet académique MLOps sur 8 semaines pour mettre en œuvre le cycle de vie co
 
 **Enseignant:** Sonia Gharsalli
 
+## 🔥 Use Case: Fake News Detection avec RoBERTa
+
+Ce projet implémente un système complet de détection de fake news avec:
+- 🤖 Modèle RoBERTa (state-of-the-art NLP)
+- 📊 Training local avec MLflow tracking
+- 🚀 API Flask pour prédictions en temps réel
+- 📦 Pipeline MLOps complet (DVC + MLflow + Docker)
+- 🌐 Interface web interactive
+
+**📖 Guide complet:** [FAKE_NEWS_GUIDE.md](FAKE_NEWS_GUIDE.md)
+
 ## 🎯 Objectifs pédagogiques
 
 - ✅ Comprendre et appliquer les principes MLOps
@@ -58,7 +69,7 @@ source venv/bin/activate  # Linux/Mac
 # ou
 .\venv\Scripts\Activate  # Windows
 
-# Installer les dépendances
+# Installer les dépendances (inclut transformers & torch)
 pip install -r requirements.txt
 
 # Initialiser DVC
@@ -66,7 +77,26 @@ dvc init
 dvc pull  # Télécharger les données versionnées
 ```
 
-### Lancer le pipeline complet
+### Option 1: Fake News Detection 🔥 (Recommandé)
+
+```bash
+# 1. Télécharger un dataset de fake news dans data/fake_news.csv
+
+# 2. Terminal 1: Démarrer MLflow
+mlflow ui --port 5000
+
+# 3. Terminal 2: Training rapide (test)
+python run_pipeline_fakenews.py --sample 1000 --epochs 1
+
+# 4. Lancer l'API
+python app_fakenews.py
+
+# 5. Ouvrir http://localhost:8080
+```
+
+**Voir le guide complet:** [FAKE_NEWS_GUIDE.md](FAKE_NEWS_GUIDE.md)
+
+### Option 2: Pipeline Original (Student Performance)
 
 ```bash
 # Lancer le pipeline de formation
