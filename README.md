@@ -1,133 +1,303 @@
-# End-to-End Machine Learning Project
+# Projet MLOps - Machine Learning en Production
 
-Complete MLOps pipeline with Kaggle integration, MLflow tracking, DVC versioning, and Docker deployment.
+Projet académique MLOps sur 8 semaines pour mettre en œuvre le cycle de vie complet d'un projet de machine learning en production.
 
-## Features
+**Enseignant:** Sonia Gharsalli
 
-### Data Pipeline
-• Structured modular data pipeline using separate Python scripts for ingestion, validation, transformation, and storage
-• YAML-based config management and artifact tracking with DVC
-• Support for both traditional ML and transformer models
+## 🎯 Objectifs pédagogiques
 
-### Model Architecture & Training
-• Modular training loop built from scratch using scikit-learn
-• Kaggle integration for training large transformer models (RoBERTa-large) with free GPUs
-• Encapsulated models as services using OOP principles for reusability
-• MLflow experiment tracking and model registry
+- ✅ Comprendre et appliquer les principes MLOps
+- ✅ Maîtriser les outils de versioning (code, données, modèles)
+- ✅ Implémenter des pipelines de ML reproductibles
+- ✅ Déployer et monitorer des modèles en production
+- ✅ Collaborer efficacement en équipe
 
-### Deployment/Serving Setup
-• End-to-end pipeline containerized via Docker
-• Integrated CI/CD workflow using GitHub Actions (automated build, test, push stages)
-• Flask API for predictions
-• Support for multiple model types (sklearn, transformers)
+## 📋 Structure du projet (8 semaines)
 
-### Monitoring/Alerting
-• Unit test coverage for all modules
-• GitHub Actions test logs + Docker layer caching + ML pipeline logging
-• Prometheus/Grafana integration for runtime monitoring
-• MLflow UI for experiment tracking
+### Semaine 1-2 ✓ : Setup & Exploration
+- [x] Configuration environnement (Git, DVC, MLflow, Docker)
+- [x] Analyse exploratoire des données
+- [x] Feature engineering reproductible
+- [x] Versioning des données avec DVC
 
-## Quick Start
+### Semaine 3-4 : Développement & Pipeline
+- [ ] Développement des modèles ML
+- [ ] Tracking avec MLflow
+- [ ] Pipeline de formation reproductible
+- [ ] Tests unitaires
 
-### For Windows Users 🪟
+### Semaine 5 : API & Inférence
+- [ ] API de prédiction (Flask/FastAPI)
+- [ ] Containerisation Docker
+- [ ] Tests d'intégration
+- [ ] Documentation API
 
-See **[WINDOWS_QUICKSTART.md](WINDOWS_QUICKSTART.md)** for complete step-by-step instructions.
+### Semaine 6 : CI/CD & Déploiement
+- [ ] GitHub Actions pour CI/CD
+- [ ] Déploiement automatisé
+- [ ] Environnements dev/staging/prod
 
-Quick setup:
-```powershell
-# Run automated setup
-.\setup_windows.ps1
+### Semaine 7-8 : Monitoring & Production
+- [ ] Monitoring des modèles (Prometheus/Grafana)
+- [ ] Logging structuré
+- [ ] Détection de drift
+- [ ] Alertes automatiques
 
-# Start MLflow
-python start_mlflow_for_ngrok.py
+## 🚀 Quick Start
 
-# In new terminal, start ngrok
-ngrok http 5000
-```
-
-### For Mac/Linux Users 🐧
+### Installation
 
 ```bash
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
+# Cloner le projet
+git clone <votre-repo>
+cd End-to-End-Basic-ML-Project
 
-# Install dependencies
+# Créer l'environnement virtuel
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# ou
+.\venv\Scripts\Activate  # Windows
+
+# Installer les dépendances
 pip install -r requirements.txt
 
-# Initialize DVC
+# Initialiser DVC
 dvc init
-
-# Start MLflow
-python start_mlflow_for_ngrok.py
-
-# In new terminal, start ngrok
-ngrok http 5000
+dvc pull  # Télécharger les données versionnées
 ```
 
-## Documentation
+### Lancer le pipeline complet
 
-- **[WINDOWS_QUICKSTART.md](WINDOWS_QUICKSTART.md)** - Complete Windows setup guide
-- **[KAGGLE_INTEGRATION.md](KAGGLE_INTEGRATION.md)** - Train models on Kaggle with free GPUs
-- **[MLFLOW_KAGGLE_SETUP.md](MLFLOW_KAGGLE_SETUP.md)** - MLflow tracking from Kaggle
-- **[QUICKSTART_MLOPS.md](QUICKSTART_MLOPS.md)** - Quick MLOps workflow guide
-- **[MLOPS_WORKFLOW.md](MLOPS_WORKFLOW.md)** - Detailed workflow examples
+```bash
+# Lancer le pipeline de formation
+python run_pipeline.py
 
-## MLOps Workflow
+# Démarrer MLflow UI
+mlflow ui --port 5000
 
-1. **Train on Kaggle** → Use free GPUs for large models
-2. **Track with MLflow** → Monitor experiments via ngrok
-3. **Download Model** → Get trained model from Kaggle
-4. **Integrate** → Use junction/symlink to save disk space
-5. **Version with DVC** → Track model versions
-6. **Deploy** → Docker or Flask application
+# Lancer l'application Flask
+python app.py
+```
 
-## Project Structure
+### Avec Docker
+
+```bash
+# Build et démarrer tous les services
+docker-compose up --build
+
+# Services disponibles :
+# - Flask App: http://localhost:8080
+# - MLflow: http://localhost:5000
+# - Prometheus: http://localhost:9090
+# - Grafana: http://localhost:3000
+```
+
+## 📁 Structure du projet
 
 ```
 .
-├── app.py                          # Flask application
-├── artifacts/                      # Model artifacts
-│   └── transformers/              # Transformer models
-├── kaggle_training/               # Kaggle integration
-│   ├── train_roberta_fakenews.py  # Fake news detection training
-│   └── integrate_kaggle_model.py  # Model integration script
 ├── src/
-│   ├── components/                # Pipeline components
-│   └── Pipelines/                 # Prediction pipelines
-├── docker-compose.yml             # Multi-service deployment
-├── Dockerfile                     # Container definition
-├── start_mlflow_for_ngrok.py     # MLflow server with ngrok support
-├── setup_windows.ps1              # Windows setup script
-└── requirements.txt               # Python dependencies
+│   ├── components/          # Composants ML (ingestion, transformation, training)
+│   │   ├── data_ingestion.py
+│   │   ├── data_transformation.py
+│   │   └── model_trainer.py
+│   └── Pipelines/           # Pipelines de prédiction
+│       └── predict_pipeline.py
+├── artifacts/               # Modèles et artefacts versionnés
+├── data/                    # Données brutes (versionnées avec DVC)
+├── logs/                    # Logs de l'application
+├── tests/                   # Tests unitaires et d'intégration
+├── .github/workflows/       # CI/CD GitHub Actions
+├── monitoring/              # Configuration Prometheus/Grafana
+├── Notebook/                # Notebooks d'exploration (EDA)
+├── docker-compose.yml       # Orchestration des services
+├── Dockerfile              # Image Docker de l'application
+├── dvc.yaml                # Pipeline DVC
+├── requirements.txt        # Dépendances Python
+├── app.py                  # API Flask
+└── run_pipeline.py         # Script de formation
 ```
 
-## Technologies
+## 🛠️ Technologies utilisées
 
-- **Python 3.8+** - Core language
-- **MLflow** - Experiment tracking and model registry
-- **DVC** - Data and model versioning
-- **Docker** - Containerization
-- **GitHub Actions** - CI/CD
-- **Flask** - Web API
-- **Transformers** - HuggingFace models
-- **scikit-learn** - Traditional ML models
-- **Prometheus + Grafana** - Monitoring
-- **ngrok** - Tunnel for Kaggle→local MLflow
+### Core ML
+- **Python 3.8+** - Langage principal
+- **scikit-learn** - Modèles ML
+- **pandas, numpy** - Manipulation de données
 
-## Use Cases
+### MLOps Stack
+- **MLflow** - Tracking d'expériences et registry de modèles
+- **DVC** - Versioning des données et modèles
+- **Docker** - Containerisation
+- **Flask** - API REST pour les prédictions
 
-This project demonstrates:
-- Training large models on Kaggle with free GPUs
-- Real-time MLflow tracking from remote environments
-- Efficient model storage with symbolic links/junctions
-- Complete MLOps lifecycle (train → track → version → deploy)
-- Multi-model support (sklearn + transformers)
+### CI/CD & Monitoring
+- **GitHub Actions** - Intégration et déploiement continus
+- **Prometheus** - Collecte de métriques
+- **Grafana** - Visualisation des métriques
+- **pytest** - Tests automatisés
 
-## Contributing
+## 📊 Pipeline MLOps
 
-Feel free to open issues or submit PRs!
+```
+┌─────────────┐    ┌──────────────┐    ┌─────────────┐
+│   Données   │───▶│  DVC Track   │───▶│  Git Push   │
+└─────────────┘    └──────────────┘    └─────────────┘
+                            │
+                            ▼
+┌─────────────┐    ┌──────────────┐    ┌─────────────┐
+│  Formation  │───▶│ MLflow Track │───▶│   Modèle    │
+└─────────────┘    └──────────────┘    └─────────────┘
+                            │
+                            ▼
+┌─────────────┐    ┌──────────────┐    ┌─────────────┐
+│   Docker    │───▶│     API      │───▶│ Monitoring  │
+│    Build    │    │  Déployée    │    │ Prometheus  │
+└─────────────┘    └──────────────┘    └─────────────┘
+```
 
-## License
+## 🧪 Tests
 
-MIT License
+```bash
+# Lancer tous les tests
+pytest tests/
+
+# Tests avec couverture
+pytest --cov=src tests/
+
+# Tests spécifiques
+pytest tests/test_model.py
+pytest tests/test_app.py
+```
+
+## 📖 Documentation détaillée
+
+- **[PROJET_MLOPS.md](PROJET_MLOPS.md)** - Guide complet semaine par semaine
+- **[QUICKSTART_MLOPS.md](QUICKSTART_MLOPS.md)** - Guide de démarrage rapide
+- **[MLOPS_WORKFLOW.md](MLOPS_WORKFLOW.md)** - Workflow détaillé
+- **[MLOPS_SETUP.md](MLOPS_SETUP.md)** - Configuration de l'environnement
+
+## 🔄 Workflow de développement
+
+### 1. Expérimentation (Notebooks)
+```bash
+# Exploration dans Notebook/EDA.ipynb
+jupyter notebook
+```
+
+### 2. Développement (Scripts Python)
+```bash
+# Coder dans src/components/
+# Ajouter tests dans tests/
+pytest tests/
+```
+
+### 3. Versioning
+```bash
+# Versionner le code
+git add .
+git commit -m "Ajout nouvelle feature"
+git push
+
+# Versionner les données/modèles
+dvc add data/train.csv
+dvc add artifacts/model.pkl
+git add data/train.csv.dvc artifacts/model.pkl.dvc
+git commit -m "Update data and model"
+git push
+dvc push
+```
+
+### 4. Training avec MLflow
+```bash
+# Lancer formation avec tracking
+python run_pipeline.py
+
+# Voir les résultats
+mlflow ui
+```
+
+### 5. Déploiement
+```bash
+# Build et déployer
+docker-compose up --build
+
+# Tester l'API
+curl -X POST http://localhost:8080/predict \
+  -H "Content-Type: application/json" \
+  -d '{"data": [...]}'
+```
+
+## 📈 Métriques et Monitoring
+
+### MLflow
+- Tracking des hyperparamètres
+- Métriques de performance (R², MSE, etc.)
+- Versioning des modèles
+- Comparaison d'expériences
+
+### Prometheus
+- Latence des prédictions
+- Nombre de requêtes
+- Erreurs API
+- Métriques système
+
+### Grafana
+- Dashboards interactifs
+- Alertes sur métriques critiques
+- Visualisation temps réel
+
+## 🚨 Bonnes pratiques
+
+### Code Quality
+- ✅ Suivre PEP 8
+- ✅ Écrire des docstrings
+- ✅ Tester chaque composant
+- ✅ Review de code en équipe
+
+### Data Science
+- ✅ Versionner les données avec DVC
+- ✅ Logger toutes les expériences avec MLflow
+- ✅ Valider les modèles avant déploiement
+- ✅ Documenter les choix métier
+
+### DevOps
+- ✅ Containeriser avec Docker
+- ✅ Automatiser avec CI/CD
+- ✅ Monitorer en production
+- ✅ Gérer les secrets avec .env
+
+## 👥 Équipe
+
+- **Nom Étudiant 1** - Rôle
+- **Nom Étudiant 2** - Rôle
+- **Nom Étudiant 3** - Rôle
+
+## 📝 Livrables attendus
+
+### Semaine 4 (Checkpoint 1)
+- [ ] Repository Git bien structuré
+- [ ] Pipeline de formation fonctionnel
+- [ ] Tests unitaires
+- [ ] Documentation technique
+
+### Semaine 6 (Checkpoint 2)
+- [ ] API de prédiction déployée
+- [ ] CI/CD opérationnel
+- [ ] Containerisation complète
+
+### Semaine 8 (Livraison finale)
+- [ ] Système complet en production
+- [ ] Monitoring actif
+- [ ] Documentation complète
+- [ ] Présentation du projet
+
+## 🆘 Support
+
+- **Questions techniques** : Ouvrir une issue GitHub
+- **Documentation** : Consulter les fichiers .md
+- **Debugging** : Vérifier les logs dans `logs/`
+
+## 📄 Licence
+
+MIT License - Projet académique
