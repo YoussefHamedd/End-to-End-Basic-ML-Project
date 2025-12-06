@@ -1,117 +1,218 @@
 # Projet MLOps - Détection de Fake News
 
-Projet académique MLOps sur 8 semaines implémentant un pipeline complet de détection de fake news avec orchestration Airflow.
+Projet académique MLOps complet avec RoBERTa pour détecter les fake news.
 
 **Enseignant:** Sonia Gharsalli
 
-## 🔥 Architecture MLOps Complète
+---
 
-```
-┌─────────────┐    ┌──────────────┐    ┌─────────────┐    ┌──────────────┐
-│   Airflow   │───▶│  Data Prep   │───▶│  Training   │───▶│   MLflow     │
-│ Orchestrator│    │  Validation  │    │   RoBERTa   │    │  Tracking    │
-└─────────────┘    └──────────────┘    └─────────────┘    └──────────────┘
-                                                                   │
-                                                                   ▼
-┌─────────────┐    ┌──────────────┐    ┌─────────────┐    ┌──────────────┐
-│   Docker    │◀───│   Flask API  │◀───│     DVC     │◀───│  Registered  │
-│  Deployment │    │  Prediction  │    │  Versioning │    │    Model     │
-└─────────────┘    └──────────────┘    └─────────────┘    └──────────────┘
-```
+## 🎯 Ce que fait ce projet
 
-## 🎯 Use Case: Fake News Detection
+- 🤖 **Détecte les fake news** avec un modèle RoBERTa (deep learning)
+- 📊 **Track les expériences** avec MLflow
+- 📦 **Version les modèles** avec DVC
+- 🌐 **API Flask** pour faire des prédictions
+- 🐳 **Déployable** avec Docker
 
-- 🤖 **Modèle**: RoBERTa-base/large pour NLP
-- 📊 **Performance**: F1 Score ~0.93-0.96, Accuracy ~92-95%
-- 🔄 **Orchestration**: Airflow DAG automatisé
-- 📈 **Tracking**: MLflow experiment tracking
-- 🚀 **API**: Flask REST API avec interface web
+**Performance**: Accuracy ~92-95%, F1 Score ~0.93-0.96
 
-## 📋 Pipeline Airflow (7 Étapes)
+---
 
-```
-Data Ingestion → Validation → Preparation → Training → Evaluation → Registration → Notification
-```
+## ⚡ Quick Start (Windows/Mac/Linux)
 
-**Voir guide complet**: [AIRFLOW_SETUP.md](AIRFLOW_SETUP.md)
-
-## 🚀 Quick Start
-
-### Méthode 1: Airflow Orchestration ⭐ (Recommandé)
+### 1. Installation (2 minutes)
 
 ```bash
-# 1. Setup
-python -m venv venv && source venv/bin/activate
+# Clone le projet
+git clone <repo-url>
+cd End-to-End-Basic-ML-Project
+
+# Environnement virtuel
+python -m venv venv
+
+# Windows:
+.\venv\Scripts\Activate
+# Mac/Linux:
+source venv/bin/activate
+
+# Installer
 pip install -r requirements.txt
-
-# 2. Data: Placer fake_news.csv dans data/
-
-# 3. Airflow
-airflow db init
-airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com
-airflow webserver --port 8081 &
-airflow scheduler &
-
-# 4. MLflow (terminal séparé)
-mlflow ui --port 5000 &
-
-# 5. Ouvrir http://localhost:8081 → Trigger DAG
 ```
 
-### Méthode 2: Manuel (Sans Airflow)
+### 2. Télécharge un dataset fake news
+
+Place ton CSV dans `data/fake_news.csv`
+
+**Format requis**: colonnes `text`, `label` (et optionnel: `title`)
+
+**Datasets suggérés**:
+- [WELFake Dataset](https://www.kaggle.com/datasets/saurabhshahane/fake-news-classification)
+- [Fake and Real News](https://www.kaggle.com/datasets/clmentbisaillon/fake-and-real-news-dataset)
+
+### 3. Test Rapide (5-10 min)
 
 ```bash
-# Test rapide
+# Terminal 1: MLflow
+mlflow ui --port 5000
+
+# Terminal 2: Training rapide
 python run_pipeline.py --sample 1000 --epochs 1
 
-# API
+# Voir les résultats: http://localhost:5000
+```
+
+### 4. Lancer l'API
+
+```bash
 python app.py
-# http://localhost:8080
+# Ouvrir: http://localhost:8080
 ```
 
-## 📁 Structure Modulaire
+**Voilà, c'est tout!** 🎉
+
+---
+
+## 📁 Structure du Projet
 
 ```
-├── airflow/dags/fake_news_ml_pipeline.py    # 🚀 DAG Orchestration
-├── src/components/
-│   ├── data_ingestion.py                    # 📥 Chargement
-│   ├── data_validation.py                   # ✅ Validation
-│   ├── data_preparation.py                  # 🧹 Nettoyage
-│   └── model_trainer.py                     # 🤖 Training
-├── src/Pipelines/predict_pipeline.py        # 🔮 Prédictions
-├── app.py                                    # 🌐 Flask API
-└── run_pipeline.py                          # 🎯 Pipeline manuel
+End-to-End-Basic-ML-Project/
+│
+├── src/
+│   ├── components/
+│   │   ├── data_ingestion.py       # 📥 Charge les données
+│   │   ├── data_validation.py      # ✅ Valide la qualité
+│   │   ├── data_preparation.py     # 🧹 Nettoie le texte
+│   │   └── model_trainer.py        # 🤖 Entraîne RoBERTa
+│   │
+│   └── Pipelines/
+│       └── predict_pipeline.py      # 🔮 Prédictions
+│
+├── data/
+│   └── fake_news.csv                # Ton dataset
+│
+├── artifacts/                       # Modèles sauvegardés
+├── logs/                            # Logs
+│
+├── app.py                           # 🌐 API Flask
+├── run_pipeline.py                  # 🎯 Pipeline principal
+└── requirements.txt                 # Dépendances
 ```
+
+---
+
+## 🚀 Utilisation Complète
+
+### Training
+
+```bash
+# Test rapide (500 samples, 1 epoch) - 5 min
+python run_pipeline.py --sample 500 --epochs 1
+
+# Training moyen (2000 samples, 2 epochs) - 20 min
+python run_pipeline.py --sample 2000 --epochs 2
+
+# Training complet (tout le dataset, 3 epochs) - 1-3h
+python run_pipeline.py --epochs 3
+
+# Avec roberta-large (meilleur mais plus lent)
+python run_pipeline.py --model roberta-large --epochs 3
+```
+
+**Paramètres disponibles**:
+- `--data`: Chemin dataset (default: `data/fake_news.csv`)
+- `--sample`: Nombre d'échantillons (default: None = tout)
+- `--model`: `roberta-base` ou `roberta-large`
+- `--epochs`: Nombre d'époques (default: 3)
+- `--batch-size`: Taille batch (default: 8)
+- `--mlflow-uri`: URI MLflow (default: `http://localhost:5000`)
+
+### Voir les Expériences (MLflow)
+
+```bash
+# Démarrer MLflow UI
+mlflow ui --port 5000
+
+# Ouvrir: http://localhost:5000
+```
+
+Dans MLflow tu peux:
+- ✅ Comparer les runs
+- ✅ Voir les métriques (accuracy, F1, etc.)
+- ✅ Télécharger les modèles
+- ✅ Visualiser les paramètres
+
+### API Flask
+
+```bash
+# Démarrer l'API
+python app.py
+
+# API disponible sur: http://localhost:8080
+```
+
+**Endpoints**:
+
+```bash
+# Prédiction simple
+curl -X POST http://localhost:8080/predict \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Breaking News", "text": "Article content here..."}'
+
+# Prédictions multiples
+curl -X POST http://localhost:8080/predict_batch \
+  -H "Content-Type: application/json" \
+  -d '{"articles": [{"title": "...", "text": "..."}, ...]}'
+
+# Health check
+curl http://localhost:8080/health
+
+# Info modèle
+curl http://localhost:8080/info
+```
+
+**Ou utilise l'interface web**: http://localhost:8080
+
+### Versionner avec DVC
+
+```bash
+# Versionner le modèle
+dvc add artifacts/roberta_fakenews
+
+# Commit
+git add artifacts/roberta_fakenews.dvc .gitignore
+git commit -m "Model v1 - F1: 0.95"
+git push
+
+# Optionnel: Push vers remote storage
+dvc push
+```
+
+---
 
 ## 🛠️ Technologies
 
-- **Orchestration**: Apache Airflow 2.8
-- **ML**: Transformers (RoBERTa), PyTorch
-- **MLOps**: MLflow, DVC
-- **API**: Flask
-- **Container**: Docker, Docker Compose
-- **Monitoring**: Prometheus, Grafana
-- **CI/CD**: GitHub Actions
+| Catégorie | Tech |
+|-----------|------|
+| **ML** | Transformers (RoBERTa), PyTorch |
+| **Tracking** | MLflow |
+| **Versioning** | DVC, Git |
+| **API** | Flask |
+| **Deploy** | Docker |
+| **Tests** | pytest |
 
-## 📖 Documentation
+---
 
-| Guide | Description |
-|-------|-------------|
-| **[AIRFLOW_SETUP.md](AIRFLOW_SETUP.md)** | 🔄 Setup & utilisation Airflow |
-| **[FAKE_NEWS_GUIDE.md](FAKE_NEWS_GUIDE.md)** | 📰 Guide fake news detection |
-| **[PROJET_MLOPS.md](PROJET_MLOPS.md)** | 🎓 Guide académique 8 semaines |
-| **[QUICKSTART_MLOPS.md](QUICKSTART_MLOPS.md)** | ⚡ Quick start général |
+## 🎓 Projet Académique (8 Semaines)
 
-## 🎓 Projet Académique - Progression
-
-### ✅ Semaine 1-2: Setup
-- [x] Git, DVC, MLflow, Docker, Airflow
+### ✅ Semaine 1-2: Setup & EDA
+- [x] Git, DVC, MLflow
+- [x] Dataset fake news
 - [x] EDA & feature engineering
 
-### ✅ Semaine 3-4: Pipeline (CHECKPOINT 1)
-- [x] Modules data prep, validation, training
-- [x] Airflow DAG orchestration
+### ✅ Semaine 3-4: Pipeline ML (CHECKPOINT 1)
+- [x] Modules modulaires (ingestion, validation, prep, training)
 - [x] MLflow tracking
+- [x] Pipeline reproductible
 - [x] Tests unitaires
 
 ### ✅ Semaine 5: API
@@ -125,23 +226,60 @@ python app.py
 - [ ] Docker deployment
 
 ### ⏳ Semaine 7-8: Production (FINAL)
-- [ ] Prometheus + Grafana
-- [ ] Monitoring complet
+- [ ] Monitoring (Prometheus/Grafana)
 - [ ] Documentation finale
+- [ ] Présentation
+
+---
+
+## 🧪 Tests
+
+```bash
+# Tous les tests
+pytest tests/ -v
+
+# Avec couverture
+pytest --cov=src tests/
+
+# Test spécifique
+pytest tests/test_data_validation.py -v
+```
+
+---
+
+## 🐳 Docker (Optionnel)
+
+```bash
+# Build
+docker build -t fakenews-api .
+
+# Run
+docker run -p 8080:8080 fakenews-api
+
+# Ou avec docker-compose
+docker-compose up --build
+```
+
+---
+
+## 📖 Documentation Complète
+
+| Guide | Description |
+|-------|-------------|
+| **[FAKE_NEWS_GUIDE.md](FAKE_NEWS_GUIDE.md)** | 📰 Guide détaillé fake news |
+| **[PROJET_MLOPS.md](PROJET_MLOPS.md)** | 🎓 Guide académique 8 semaines |
+| **[QUICKSTART_MLOPS.md](QUICKSTART_MLOPS.md)** | ⚡ Quick start rapide |
+
+---
 
 ## 🔧 Commandes Essentielles
 
 ```bash
-# Airflow
-airflow webserver --port 8081
-airflow scheduler
-airflow dags trigger fake_news_detection_pipeline
+# Training
+python run_pipeline.py --sample 1000 --epochs 1
 
 # MLflow
 mlflow ui --port 5000
-
-# Training
-python run_pipeline.py --sample 1000 --epochs 1
 
 # API
 python app.py
@@ -149,43 +287,61 @@ python app.py
 # Tests
 pytest tests/ -v
 
-# Docker
-docker-compose up --build
+# DVC
+dvc add artifacts/roberta_fakenews
+git add *.dvc && git commit -m "Update model"
 ```
-
-## 📊 API Endpoints
-
-```bash
-# Prédiction
-POST /predict
-curl -X POST http://localhost:8080/predict \
-  -H "Content-Type: application/json" \
-  -d '{"title": "News Title", "text": "Article content..."}'
-
-# Health
-GET /health
-
-# Info modèle
-GET /info
-```
-
-## 🔄 Workflow MLOps
-
-1. **Develop**: Test local avec `run_pipeline.py`
-2. **Orchestrate**: Airflow DAG automatique
-3. **Track**: MLflow experiments
-4. **Version**: DVC + Git
-5. **Deploy**: Docker Compose
-6. **Monitor**: Airflow UI + Grafana
-
-## 🎯 Livrables Académiques
-
-- **Checkpoint 1 (S4)**: ✅ Pipeline orchestré + MLflow
-- **Checkpoint 2 (S6)**: ⏳ API + CI/CD
-- **Final (S8)**: ⏳ Production + Monitoring
 
 ---
 
-📖 **Voir guides détaillés pour setup complet!**
+## ❓ FAQ
 
-🚀 **Get Started**: `python run_pipeline.py --sample 500 --epochs 1`
+### Q: Ça marche sur Windows?
+**Oui!** Tout fonctionne sur Windows, Mac et Linux.
+
+### Q: J'ai besoin d'un GPU?
+**Non**, mais c'est plus rapide. Sur CPU:
+- Test (500 samples): ~5-10 min
+- Complet: ~1-3 heures
+
+### Q: Le dataset est trop gros?
+Utilise `--sample 500` pour tester rapidement.
+
+### Q: Comment changer de dataset?
+Place ton CSV dans `data/` avec colonnes `text` et `label`, puis:
+```bash
+python run_pipeline.py --data data/mon_dataset.csv
+```
+
+### Q: MLflow ne se connecte pas?
+Vérifie que MLflow UI tourne sur le bon port:
+```bash
+mlflow ui --port 5000
+```
+
+---
+
+## 🎯 Livrables Académiques
+
+- **Checkpoint 1 (Semaine 4)**: ✅ Pipeline + MLflow
+- **Checkpoint 2 (Semaine 6)**: ⏳ API + CI/CD
+- **Final (Semaine 8)**: ⏳ Production + Monitoring
+
+---
+
+## 🚀 Get Started Maintenant!
+
+```bash
+pip install -r requirements.txt
+python run_pipeline.py --sample 500 --epochs 1
+mlflow ui --port 5000
+python app.py
+```
+
+**C'est tout!** Simple et efficace. 🎉
+
+---
+
+📖 **Plus de détails?** Voir [FAKE_NEWS_GUIDE.md](FAKE_NEWS_GUIDE.md)
+
+🆘 **Problème?** Ouvre une issue GitHub

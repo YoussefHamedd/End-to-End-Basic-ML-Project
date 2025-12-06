@@ -14,10 +14,6 @@ mlflow
 dvc
 dvc[s3]
 
-# Orchestration
-apache-airflow==2.8.1
-apache-airflow-providers-docker
-
 # Testing
 pytest
 pytest-cov
