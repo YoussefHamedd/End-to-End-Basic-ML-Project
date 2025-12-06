@@ -13,6 +13,7 @@ flask
 mlflow
 dvc
 dvc[s3]
+prefect>=2.14.0
 
 # Testing
 pytest

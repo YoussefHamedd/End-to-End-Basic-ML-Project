@@ -11,6 +11,7 @@ Projet académique MLOps complet avec RoBERTa pour détecter les fake news.
 - 🤖 **Détecte les fake news** avec un modèle RoBERTa (deep learning)
 - 📊 **Track les expériences** avec MLflow
 - 📦 **Version les modèles** avec DVC
+- 🔄 **Orchestre le workflow** avec Prefect (optionnel)
 - 🌐 **API Flask** pour faire des prédictions
 - 🐳 **Déployable** avec Docker
 
@@ -86,6 +87,9 @@ End-to-End-Basic-ML-Project/
 │   │
 │   └── Pipelines/
 │       └── predict_pipeline.py      # 🔮 Prédictions
+│
+├── prefect_flows/
+│   └── ml_pipeline_flow.py          # 🔄 Orchestration Prefect
 │
 ├── data/
 │   └── fake_news.csv                # Ton dataset
@@ -172,6 +176,37 @@ curl http://localhost:8080/info
 
 **Ou utilise l'interface web**: http://localhost:8080
 
+### Orchestration avec Prefect (Optionnel)
+
+**Prefect** orchestre ton workflow avec gestion d'erreurs automatique, retries, et monitoring.
+
+```bash
+# Option 1: Pipeline direct avec Prefect
+python prefect_flows/ml_pipeline_flow.py --sample 1000 --epochs 1
+
+# Option 2: Avec UI de monitoring
+# Terminal 1: Prefect UI
+prefect server start
+
+# Terminal 2: MLflow UI
+mlflow ui --port 5000
+
+# Terminal 3: Run pipeline
+python prefect_flows/ml_pipeline_flow.py --epochs 3
+
+# Voir résultats:
+# - Prefect UI: http://localhost:4200
+# - MLflow UI: http://localhost:5000
+```
+
+**Avantages Prefect**:
+- ✅ Fonctionne nativement sur Windows (pas comme Airflow!)
+- ✅ Retries automatiques en cas d'erreur
+- ✅ Interface moderne de monitoring
+- ✅ Setup simple: `pip install prefect`
+
+**Guide complet**: Voir [PREFECT_SETUP.md](PREFECT_SETUP.md)
+
 ### Versionner avec DVC
 
 ```bash
@@ -196,6 +231,7 @@ dvc push
 | **ML** | Transformers (RoBERTa), PyTorch |
 | **Tracking** | MLflow |
 | **Versioning** | DVC, Git |
+| **Orchestration** | Prefect (optionnel) |
 | **API** | Flask |
 | **Deploy** | Docker |
 | **Tests** | pytest |
@@ -268,6 +304,7 @@ docker-compose up --build
 |-------|-------------|
 | **[FAKE_NEWS_GUIDE.md](FAKE_NEWS_GUIDE.md)** | 📰 Guide détaillé fake news |
 | **[PROJET_MLOPS.md](PROJET_MLOPS.md)** | 🎓 Guide académique 8 semaines |
+| **[PREFECT_SETUP.md](PREFECT_SETUP.md)** | 🔄 Orchestration avec Prefect |
 | **[QUICKSTART_MLOPS.md](QUICKSTART_MLOPS.md)** | ⚡ Quick start rapide |
 
 ---
@@ -278,8 +315,14 @@ docker-compose up --build
 # Training
 python run_pipeline.py --sample 1000 --epochs 1
 
+# Training avec Prefect (orchestration)
+python prefect_flows/ml_pipeline_flow.py --sample 1000 --epochs 1
+
 # MLflow
 mlflow ui --port 5000
+
+# Prefect UI (optionnel)
+prefect server start
 
 # API
 python app.py
