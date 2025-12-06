@@ -1,0 +1,40 @@
+# Requirements for Windows (without Airflow - use Docker for Airflow)
+# Install with: pip install -r requirements-windows.txt
+
+# Core ML Libraries
+pandas
+numpy
+seaborn
+scikit-learn
+catboost
+xgboost
+
+# Web Framework
+flask
+
+# MLOps Tools (Airflow excluded - use Docker instead)
+mlflow
+dvc
+dvc[s3]
+
+# Testing
+pytest
+pytest-cov
+
+# Code Quality
+black
+flake8
+pre-commit
+
+# Monitoring & Logging
+prometheus-client
+python-dotenv
+
+# Model Serving
+gunicorn
+
+# Transformer Models
+transformers
+torch
+
+-e .
