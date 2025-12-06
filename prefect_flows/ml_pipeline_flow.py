@@ -6,7 +6,6 @@ import os
 import sys
 import pandas as pd
 from prefect import flow, task
-from prefect.task_runners import SequentialTaskRunner
 from datetime import timedelta
 
 # Add src to path
@@ -169,7 +168,6 @@ def train_model_task(
 @flow(
     name="Fake News Detection ML Pipeline",
     description="Complete MLOps pipeline with Prefect orchestration",
-    task_runner=SequentialTaskRunner(),
     retries=1,
     retry_delay_seconds=10
 )
