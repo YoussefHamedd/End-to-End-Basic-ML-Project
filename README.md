@@ -302,9 +302,11 @@ docker-compose up --build
 
 | Guide | Description |
 |-------|-------------|
-| **[FAKE_NEWS_GUIDE.md](FAKE_NEWS_GUIDE.md)** | 📰 Guide détaillé fake news |
-| **[PROJET_MLOPS.md](PROJET_MLOPS.md)** | 🎓 Guide académique 8 semaines |
+| **[COMPLETE_GUIDE.md](COMPLETE_GUIDE.md)** | 📚 **Guide complet de A à Z** |
+| **[MONITORING_GUIDE.md](MONITORING_GUIDE.md)** | 📊 Prometheus + Grafana monitoring |
 | **[PREFECT_SETUP.md](PREFECT_SETUP.md)** | 🔄 Orchestration avec Prefect |
+| **[PROJET_MLOPS.md](PROJET_MLOPS.md)** | 🎓 Guide académique 8 semaines |
+| **[FAKE_NEWS_GUIDE.md](FAKE_NEWS_GUIDE.md)** | 📰 Guide détaillé fake news |
 | **[QUICKSTART_MLOPS.md](QUICKSTART_MLOPS.md)** | ⚡ Quick start rapide |
 
 ---
