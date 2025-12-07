@@ -8,7 +8,7 @@ on:
 
 env:
   PYTHON_VERSION: '3.11'
-  DOCKER_IMAGE_NAME: student-performance-ml
+  DOCKER_IMAGE_NAME: fakenews-detection-ml
 
 jobs:
   # Code Quality & Linting
@@ -140,7 +140,22 @@ jobs:
 
       - name: Test ML application endpoint
         run: |
-          curl -f http://localhost:8080/ || echo "Application health check"
+          curl -f http://localhost:8080/health || echo "Application health check"
+        continue-on-error: true
+
+      - name: Test Prometheus metrics endpoint
+        run: |
+          curl -f http://localhost:8080/metrics || echo "Metrics endpoint check"
+        continue-on-error: true
+
+      - name: Test Prometheus server
+        run: |
+          curl -f http://localhost:9090/-/healthy || echo "Prometheus health check"
+        continue-on-error: true
+
+      - name: Test Grafana server
+        run: |
+          curl -f http://localhost:3000/api/health || echo "Grafana health check"
         continue-on-error: true
 
       - name: Stop services

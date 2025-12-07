@@ -1,13 +1,24 @@
 """
 Flask API for Fake News Detection
 Serves predictions from trained RoBERTa model
+Includes Prometheus monitoring
 """
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, Response
 from src.Pipelines.predict_pipeline_fakenews import FakeNewsPredictionPipeline, CustomData
 from src.exceptions import CustomException
+from src.monitoring import monitor
+from prometheus_client import generate_latest, Counter, Histogram, Gauge
 import sys
+import time
 
 app = Flask(__name__)
+
+# Prometheus metrics
+prediction_counter = Counter('fakenews_predictions_total', 'Total predictions made', ['prediction_type'])
+prediction_duration = Histogram('fakenews_prediction_duration_seconds', 'Prediction duration')
+model_confidence = Gauge('fakenews_model_confidence', 'Model prediction confidence')
+api_requests = Counter('fakenews_api_requests_total', 'Total API requests', ['endpoint', 'method', 'status'])
+error_counter = Counter('fakenews_errors_total', 'Total errors', ['error_type'])
 
 # Initialize prediction pipeline
 try:
@@ -28,8 +39,14 @@ def index():
 @app.route('/predict', methods=['POST'])
 def predict():
     """Prediction endpoint"""
+    start_time = time.time()
+
     try:
+        api_requests.labels(endpoint='/predict', method='POST', status='attempt').inc()
+
         if pipeline is None:
+            api_requests.labels(endpoint='/predict', method='POST', status='error').inc()
+            error_counter.labels(error_type='model_not_loaded').inc()
             return jsonify({
                 'error': 'Model not loaded. Please train a model first.',
                 'status': 'error'
@@ -48,6 +65,8 @@ def predict():
 
         # Validate input
         if not text:
+            api_requests.labels(endpoint='/predict', method='POST', status='error').inc()
+            error_counter.labels(error_type='validation_error').inc()
             return jsonify({
                 'error': 'Text field is required',
                 'status': 'error'
@@ -55,6 +74,13 @@ def predict():
 
         # Make prediction
         result = pipeline.predict_single(title=title, text=text)
+
+        # Track metrics
+        duration = time.time() - start_time
+        prediction_duration.observe(duration)
+        prediction_counter.labels(prediction_type=result['prediction']).inc()
+        model_confidence.set(result['confidence'])
+        api_requests.labels(endpoint='/predict', method='POST', status='success').inc()
 
         # Return result
         response = {
@@ -70,6 +96,8 @@ def predict():
         return jsonify(response)
 
     except Exception as e:
+        api_requests.labels(endpoint='/predict', method='POST', status='error').inc()
+        error_counter.labels(error_type=type(e).__name__).inc()
         return jsonify({
             'error': str(e),
             'status': 'error'
@@ -155,9 +183,15 @@ def info():
         }), 500
 
 
+@app.route('/metrics')
+def metrics():
+    """Prometheus metrics endpoint"""
+    return Response(generate_latest(), mimetype='text/plain')
+
+
 if __name__ == '__main__':
     print("\n" + "="*70)
-    print("  🚀 Fake News Detection API")
+    print("  🚀 Fake News Detection API with Prometheus Monitoring")
     print("="*70)
     print("Endpoints:")
     print("  - GET  /           - Home page")
@@ -165,6 +199,7 @@ if __name__ == '__main__':
     print("  - POST /predict_batch - Batch predictions")
     print("  - GET  /health     - Health check")
     print("  - GET  /info       - Model information")
+    print("  - GET  /metrics    - Prometheus metrics")
     print("\nExample usage:")
     print("  curl -X POST http://localhost:8080/predict \\")
     print("    -H 'Content-Type: application/json' \\")
@@ -172,6 +207,10 @@ if __name__ == '__main__':
     print('      "title": "Breaking News",')
     print('      "text": "Scientists discover new cancer treatment..."')
     print("    }'")
+    print("\nMonitoring:")
+    print("  - Metrics: http://localhost:8080/metrics")
+    print("  - Prometheus: http://localhost:9090")
+    print("  - Grafana: http://localhost:3000")
     print("="*70 + "\n")
 
     app.run(host='0.0.0.0', port=8080, debug=False)
