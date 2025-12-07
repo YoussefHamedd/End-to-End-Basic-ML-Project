@@ -4,7 +4,7 @@ Serves predictions from trained RoBERTa model
 Includes Prometheus monitoring
 """
 from flask import Flask, request, render_template, jsonify, Response
-from src.Pipelines.predict_pipeline_fakenews import FakeNewsPredictionPipeline, CustomData
+from src.Pipelines.predict_pipeline import FakeNewsPredictionPipeline, CustomData
 from src.exceptions import CustomException
 from src.monitoring import monitor
 from prometheus_client import generate_latest, Counter, Histogram, Gauge
